@@ -1,0 +1,42 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+        include-prerelease: true
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Publish win-x64
+      run: dotnet publish MmLogView.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true -o ./publish
+
+    - name: Zip Artifact
+      shell: pwsh
+      run: |
+        Compress-Archive -Path ./publish/* -DestinationPath MmLogView_win-x64.zip
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: MmLogView_win-x64.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
