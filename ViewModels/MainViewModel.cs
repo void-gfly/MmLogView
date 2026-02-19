@@ -22,6 +22,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private string _searchResultInfo = "";
     private bool _isMarkdownMode;
     private string _markdownText = "";
+    private bool _isJsonMode;
+    private string _jsonText = "";
+    private ObservableCollection<JsonNodeViewModel> _jsonRootNodes = [];
     private bool _isSearchVisible;
     private double _scanProgress;
     private bool _isScanningVisible;
@@ -96,13 +99,41 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public bool IsMarkdownMode
     {
         get => _isMarkdownMode;
-        set => SetField(ref _isMarkdownMode, value);
+        set
+        {
+            if (SetField(ref _isMarkdownMode, value))
+                OnPropertyChanged(nameof(IsLogMode));
+        }
     }
+
+    public bool IsJsonMode
+    {
+        get => _isJsonMode;
+        set
+        {
+            if (SetField(ref _isJsonMode, value))
+                OnPropertyChanged(nameof(IsLogMode));
+        }
+    }
+
+    public bool IsLogMode => !IsMarkdownMode && !IsJsonMode;
 
     public string MarkdownText
     {
         get => _markdownText;
         set => SetField(ref _markdownText, value);
+    }
+
+    public string JsonText
+    {
+        get => _jsonText;
+        set => SetField(ref _jsonText, value);
+    }
+
+    public ObservableCollection<JsonNodeViewModel> JsonRootNodes
+    {
+        get => _jsonRootNodes;
+        set => SetField(ref _jsonRootNodes, value);
     }
 
     public double ScanProgress
@@ -172,6 +203,34 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 // Markdown 模式
                 MarkdownText = File.ReadAllText(filePath);
                 IsMarkdownMode = true;
+                IsJsonMode = false;
+                IsScanningVisible = false;
+
+                var fileName = Path.GetFileName(filePath);
+                StatusText = fileName;
+                var fi = new FileInfo(filePath);
+                FileSizeText = FormatFileSize(fi.Length);
+                EncodingText = "UTF-8";
+                LineInfoText = "";
+            }
+            else if (string.Equals(ext, ".json", StringComparison.OrdinalIgnoreCase))
+            {
+                // Json 模式
+                var jsonString = File.ReadAllText(filePath);
+                try
+                {
+                    var (formattedText, rootNode) = JsonTreeBuilder.Build(jsonString);
+                    JsonText = formattedText;
+                    JsonRootNodes = [rootNode];
+                }
+                catch
+                {
+                    JsonText = jsonString;
+                    JsonRootNodes = [];
+                }
+
+                IsJsonMode = true;
+                IsMarkdownMode = false;
                 IsScanningVisible = false;
 
                 var fileName = Path.GetFileName(filePath);
@@ -185,7 +244,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             {
                 // 日志模式
                 IsMarkdownMode = false;
+                IsJsonMode = false;
                 MarkdownText = "";
+                JsonText = "";
 
                 _logFile = new MappedLogFile(filePath);
                 _logFile.LineIndex.ProgressChanged += OnScanProgressChanged;

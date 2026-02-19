@@ -53,8 +53,8 @@ public sealed class LanguageManager : INotifyPropertyChanged
     // ── Open File Dialog ──
     public string OpenDialogTitle => _isEnglish ? "Open File" : "打开文件";
     public string OpenDialogFilter => _isEnglish
-        ? "Log files (*.log;*.txt)|*.log;*.txt|Markdown (*.md)|*.md|All files (*.*)|*.*"
-        : "日志文件 (*.log;*.txt)|*.log;*.txt|Markdown (*.md)|*.md|所有文件 (*.*)|*.*";
+        ? "Log files (*.log;*.txt)|*.log;*.txt|JSON (*.json)|*.json|Markdown (*.md)|*.md|All files (*.*)|*.*"
+        : "日志文件 (*.log;*.txt)|*.log;*.txt|JSON (*.json)|*.json|Markdown (*.md)|*.md|所有文件 (*.*)|*.*";
 
     // ── GoToLine Dialog ──
     public string GoToLineTitle => _isEnglish ? "Go to Line" : "跳转到行";
@@ -77,6 +77,10 @@ public sealed class LanguageManager : INotifyPropertyChanged
     public string MenuOpenPageNotepad => _isEnglish
         ? "Copy Page & Open in Notepad"
         : "复制当前页用notepad打开";
+
+    // ── Json Context Menu ──
+    public string MenuCopyNode => _isEnglish ? "Copy Node" : "复制本节点";
+    public string MenuCopyNodeAndChildren => _isEnglish ? "Copy Node & Children" : "复制本节点(连所有子节点)";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 }

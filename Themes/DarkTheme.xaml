@@ -82,7 +82,14 @@
     <!-- ScrollBar Thumb Style -->
     <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="#1E1E1E" />
-        <Setter Property="Width" Value="14" />
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="Width" Value="14" />
+            </Trigger>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Height" Value="14" />
+            </Trigger>
+        </Style.Triggers>
         <Style.Resources>
             <Style TargetType="Thumb">
                 <Setter Property="Background" Value="#5A5A5A" />

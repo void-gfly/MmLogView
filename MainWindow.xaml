@@ -128,10 +128,10 @@
             </Grid>
         </Border>
 
-        <!-- Log viewport (visible when NOT in Markdown mode) -->
+        <!-- Log viewport (visible in Log mode) -->
         <controls:LogViewport Grid.Row="2"
                               x:Name="LogView"
-                              Visibility="{Binding IsMarkdownMode, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}" />
+                              Visibility="{Binding IsLogMode, Converter={StaticResource BoolToVisibility}}" />
 
         <!-- Markdown viewer (visible when in Markdown mode) -->
         <mdxam:MarkdownScrollViewer Grid.Row="2"
@@ -143,6 +143,11 @@
                                     Padding="20"
                                     VerticalScrollBarVisibility="Auto"
                                     Visibility="{Binding IsMarkdownMode, Converter={StaticResource BoolToVisibility}}" />
+
+        <!-- Json viewport (visible when in Json mode) -->
+        <controls:JsonViewport Grid.Row="2"
+                               x:Name="JsonView"
+                               Visibility="{Binding IsJsonMode, Converter={StaticResource BoolToVisibility}}" />
 
         <!-- Status bar -->
         <Border Grid.Row="3" 
