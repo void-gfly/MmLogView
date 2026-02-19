@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BtnCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="BtnGoTo" xml:space="preserve">
+    <value>↕ Go To</value>
+  </data>
+  <data name="BtnOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="BtnOpen" xml:space="preserve">
+    <value>📂 Open</value>
+  </data>
+  <data name="BtnSearch" xml:space="preserve">
+    <value>🔍 Search</value>
+  </data>
+  <data name="FeatureText" xml:space="preserve">
+    <value>Supports GB-sized log files | Markdown rendering | Json parsing</value>
+  </data>
+  <data name="GoToLineLabel" xml:space="preserve">
+    <value>Enter line number (1 - {0:N0}):</value>
+  </data>
+  <data name="GoToLineTitle" xml:space="preserve">
+    <value>Go to Line</value>
+  </data>
+  <data name="InvalidInputTitle" xml:space="preserve">
+    <value>Invalid Input</value>
+  </data>
+  <data name="InvalidLineInput" xml:space="preserve">
+    <value>Please enter a line number between 1 and {0:N0}.</value>
+  </data>
+  <data name="LineDone" xml:space="preserve">
+    <value>Lines: {0:N0}</value>
+  </data>
+  <data name="LineScanning" xml:space="preserve">
+    <value>Lines: {0:N0} (scanning...)</value>
+  </data>
+  <data name="MenuCopyNode" xml:space="preserve">
+    <value>Copy Node</value>
+  </data>
+  <data name="MenuCopyNodeAndChildren" xml:space="preserve">
+    <value>Copy Node &amp; Children</value>
+  </data>
+  <data name="MenuCopyPage" xml:space="preserve">
+    <value>Copy Page</value>
+  </data>
+  <data name="MenuCopySelected" xml:space="preserve">
+    <value>Copy Selected</value>
+  </data>
+  <data name="MenuOpenLineNotepad" xml:space="preserve">
+    <value>Copy Line &amp; Open in Notepad</value>
+  </data>
+  <data name="MenuOpenPageNotepad" xml:space="preserve">
+    <value>Copy Page &amp; Open in Notepad</value>
+  </data>
+  <data name="OpenDialogFilter" xml:space="preserve">
+    <value>Log files (*.log;*.txt)|*.log;*.txt|JSON (*.json)|*.json|Markdown (*.md)|*.md|All files (*.*)|*.*</value>
+  </data>
+  <data name="OpenDialogTitle" xml:space="preserve">
+    <value>Open File</value>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>Open failed: {0}</value>
+  </data>
+  <data name="ReadyStatus" xml:space="preserve">
+    <value>Ready — Drop file or Ctrl+O to open</value>
+  </data>
+  <data name="SearchFoundAt" xml:space="preserve">
+    <value>Line {0:N0}</value>
+  </data>
+  <data name="SearchNotFound" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="ThemeTooltip" xml:space="preserve">
+    <value>Toggle Dark/Light Theme</value>
+  </data>
+</root>

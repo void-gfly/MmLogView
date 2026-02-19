@@ -7,7 +7,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using MmLogView.Core;
-using MmLogView.Localization;
+using MmLogView.Properties;
 
 namespace MmLogView.Controls;
 
@@ -53,11 +53,11 @@ public sealed class LogViewport : FrameworkElement
         AddVisualChild(_scrollBar);
         AddLogicalChild(_scrollBar);
 
-        var lang = LanguageManager.Current;
-        _copySelectedMenuItem = new MenuItem { Header = lang.MenuCopySelected };
-        _copyPageMenuItem = new MenuItem { Header = lang.MenuCopyPage };
-        _openLineInNotepadMenuItem = new MenuItem { Header = lang.MenuOpenLineNotepad };
-        _openPageInNotepadMenuItem = new MenuItem { Header = lang.MenuOpenPageNotepad };
+        var res = ResourcesExtension.Instance;
+        _copySelectedMenuItem = new MenuItem { Header = res.MenuCopySelected };
+        _copyPageMenuItem = new MenuItem { Header = res.MenuCopyPage };
+        _openLineInNotepadMenuItem = new MenuItem { Header = res.MenuOpenLineNotepad };
+        _openPageInNotepadMenuItem = new MenuItem { Header = res.MenuOpenPageNotepad };
         _copySelectedMenuItem.Click += (_, _) => CopySelectedLine();
         _copyPageMenuItem.Click += (_, _) => CopyVisiblePage();
         _openLineInNotepadMenuItem.Click += (_, _) => OpenSelectedLineInNotepad();
@@ -90,11 +90,11 @@ public sealed class LogViewport : FrameworkElement
 
     public void RefreshContextMenuLanguage()
     {
-        var lang = LanguageManager.Current;
-        _copySelectedMenuItem.Header = lang.MenuCopySelected;
-        _copyPageMenuItem.Header = lang.MenuCopyPage;
-        _openLineInNotepadMenuItem.Header = lang.MenuOpenLineNotepad;
-        _openPageInNotepadMenuItem.Header = lang.MenuOpenPageNotepad;
+        var res = ResourcesExtension.Instance;
+        _copySelectedMenuItem.Header = res.MenuCopySelected;
+        _copyPageMenuItem.Header = res.MenuCopyPage;
+        _openLineInNotepadMenuItem.Header = res.MenuOpenLineNotepad;
+        _openPageInNotepadMenuItem.Header = res.MenuOpenPageNotepad;
     }
 
     public void OnLineCountChanged()

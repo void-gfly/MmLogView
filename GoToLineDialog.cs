@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using MmLogView.Localization;
+using MmLogView.Properties;
 
 namespace MmLogView;
 
@@ -13,8 +13,8 @@ public class GoToLineDialog : Window
 
     public GoToLineDialog(long maxLines)
     {
-        var lang = LanguageManager.Current;
-        Title = lang.GoToLineTitle;
+        var res = ResourcesExtension.Instance;
+        Title = res.GoToLineTitle;
         Width = 360;
         Height = 180;
         SizeToContent = SizeToContent.Height;
@@ -28,7 +28,7 @@ public class GoToLineDialog : Window
 
         var label = new TextBlock
         {
-            Text = lang.GoToLineLabel(maxLines),
+            Text = string.Format(res.GoToLineLabel, maxLines),
             Margin = new Thickness(0, 0, 0, 8),
             Foreground = (System.Windows.Media.Brush?)Application.Current.TryFindResource("WindowForeground")
                 ?? System.Windows.Media.Brushes.Black
@@ -47,9 +47,9 @@ public class GoToLineDialog : Window
         panel.Children.Add(_textBox);
 
         var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-        var okButton = new Button { Content = lang.BtnOk, Width = 80, Margin = new Thickness(0, 0, 8, 0) };
+        var okButton = new Button { Content = res.BtnOk, Width = 80, Margin = new Thickness(0, 0, 8, 0) };
         okButton.Click += (_, _) => TryAccept(maxLines);
-        var cancelButton = new Button { Content = lang.BtnCancel, Width = 80, IsCancel = true };
+        var cancelButton = new Button { Content = res.BtnCancel, Width = 80, IsCancel = true };
         buttonPanel.Children.Add(okButton);
         buttonPanel.Children.Add(cancelButton);
         panel.Children.Add(buttonPanel);
@@ -67,8 +67,8 @@ public class GoToLineDialog : Window
         }
         else
         {
-            var lang = LanguageManager.Current;
-            MessageBox.Show(lang.InvalidLineInput(maxLines), lang.InvalidInputTitle, MessageBoxButton.OK, MessageBoxImage.Warning);
+            var res = ResourcesExtension.Instance;
+            MessageBox.Show(string.Format(res.InvalidLineInput, maxLines), res.InvalidInputTitle, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

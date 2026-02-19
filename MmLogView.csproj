@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="MdXaml" Version="1.27.0" />
+    <PackageReference Include="QS.WPF.Toolkit.GlobalizationSourceGenerator" Version="1.0.3" />
   </ItemGroup>
 
 </Project>

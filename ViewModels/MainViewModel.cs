@@ -7,14 +7,14 @@ using System.Windows.Input;
 using MdXaml;
 using MmLogView.Controls;
 using MmLogView.Core;
-using MmLogView.Localization;
+using MmLogView.Properties;
 
 namespace MmLogView.ViewModels;
 
 public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 {
     private MappedLogFile? _logFile;
-    private string _statusText = LanguageManager.Current.ReadyStatus;
+    private string _statusText = ResourcesExtension.Instance.ReadyStatus;
     private string _encodingText = "";
     private string _fileSizeText = "";
     private string _lineInfoText = "";
@@ -31,12 +31,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private bool _isDarkTheme = true;
     private int _selectedLanguageIndex;
 
-    private readonly LanguageManager _lang = LanguageManager.Current;
-
     public LogViewport? ViewportControl { get; set; }
     public MarkdownScrollViewer? MarkdownViewer { get; set; }
-
-    public LanguageManager Lang => _lang;
 
     public ObservableCollection<string> RecentFiles => RecentFilesManager.Instance.Items;
 
@@ -49,7 +45,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             if (SetField(ref _selectedLanguageIndex, value))
             {
-                _lang.IsEnglish = value == 1;
+                ResourcesExtension.Instance.CurrentCulture = value == 1 ? "en-US" : "zh-CN";
             }
         }
     }
@@ -166,26 +162,23 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         SearchPrevCommand = new RelayCommand(OnSearchPrev, () => _logFile is not null && !string.IsNullOrEmpty(SearchText));
         ToggleThemeCommand = new RelayCommand(OnToggleTheme);
 
-        _lang.PropertyChanged += OnLanguageChanged;
+        ResourcesExtension.Instance.PropertyChanged += OnLanguageChanged;
     }
 
     private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // 通知 XAML 刷新所有通过 Lang.xxx 绑定的静态文本
-        OnPropertyChanged(nameof(Lang));
-
         // 刷新动态文本
         if (_logFile is null)
         {
-            StatusText = _lang.ReadyStatus;
+            StatusText = ResourcesExtension.Instance.ReadyStatus;
         }
 
         if (_logFile is not null)
         {
             if (IsScanningVisible)
-                LineInfoText = _lang.LineScanning(_logFile.LineIndex.ScannedLines);
+                LineInfoText = string.Format(ResourcesExtension.Instance.LineScanning, _logFile.LineIndex.ScannedLines);
             else
-                LineInfoText = _lang.LineDone(_logFile.LineIndex.ScannedLines);
+                LineInfoText = string.Format(ResourcesExtension.Instance.LineDone, _logFile.LineIndex.ScannedLines);
         }
 
         ViewportControl?.RefreshContextMenuLanguage();
@@ -269,7 +262,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (Exception ex)
         {
-            StatusText = _lang.OpenFailed(ex.Message);
+            StatusText = string.Format(ResourcesExtension.Instance.OpenFailed, ex.Message);
         }
     }
 
@@ -284,7 +277,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         Application.Current.Dispatcher.Invoke(() =>
         {
             ScanProgress = progress * 100;
-            LineInfoText = _lang.LineScanning(_logFile!.LineIndex.ScannedLines);
+            LineInfoText = string.Format(ResourcesExtension.Instance.LineScanning, _logFile!.LineIndex.ScannedLines);
         });
     }
 
@@ -293,7 +286,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         Application.Current.Dispatcher.Invoke(() =>
         {
             IsScanningVisible = false;
-            LineInfoText = _lang.LineDone(_logFile!.LineIndex.ScannedLines);
+            LineInfoText = string.Format(ResourcesExtension.Instance.LineDone, _logFile!.LineIndex.ScannedLines);
             ViewportControl?.OnLineCountChanged();
         });
     }
@@ -302,8 +295,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = _lang.OpenDialogTitle,
-            Filter = _lang.OpenDialogFilter,
+            Title = ResourcesExtension.Instance.OpenDialogTitle,
+            Filter = ResourcesExtension.Instance.OpenDialogFilter,
             FilterIndex = 1
         };
 
@@ -337,11 +330,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         if (result >= 0)
         {
             ViewportControl?.ScrollToLine(result);
-            SearchResultInfo = _lang.SearchFoundAt(result + 1);
+            SearchResultInfo = string.Format(ResourcesExtension.Instance.SearchFoundAt, result + 1);
         }
         else
         {
-            SearchResultInfo = _lang.SearchNotFound;
+            SearchResultInfo = ResourcesExtension.Instance.SearchNotFound;
         }
     }
 
@@ -354,11 +347,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         if (result >= 0)
         {
             ViewportControl?.ScrollToLine(result);
-            SearchResultInfo = _lang.SearchFoundAt(result + 1);
+            SearchResultInfo = string.Format(ResourcesExtension.Instance.SearchFoundAt, result + 1);
         }
         else
         {
-            SearchResultInfo = _lang.SearchNotFound;
+            SearchResultInfo = ResourcesExtension.Instance.SearchNotFound;
         }
     }
 

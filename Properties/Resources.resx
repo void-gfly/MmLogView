@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BtnCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="BtnGoTo" xml:space="preserve">
+    <value>↕ 跳行</value>
+  </data>
+  <data name="BtnOk" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="BtnOpen" xml:space="preserve">
+    <value>📂 打开</value>
+  </data>
+  <data name="BtnSearch" xml:space="preserve">
+    <value>🔍 搜索</value>
+  </data>
+  <data name="FeatureText" xml:space="preserve">
+    <value>支持打开G级超大Log文件 | 支持MarkDown渲染 | 支持Json解析</value>
+  </data>
+  <data name="GoToLineLabel" xml:space="preserve">
+    <value>输入行号 (1 - {0:N0}):</value>
+  </data>
+  <data name="GoToLineTitle" xml:space="preserve">
+    <value>跳转到行</value>
+  </data>
+  <data name="InvalidInputTitle" xml:space="preserve">
+    <value>无效输入</value>
+  </data>
+  <data name="InvalidLineInput" xml:space="preserve">
+    <value>请输入 1 到 {0:N0} 之间的行号。</value>
+  </data>
+  <data name="LineDone" xml:space="preserve">
+    <value>行: {0:N0}</value>
+  </data>
+  <data name="LineScanning" xml:space="preserve">
+    <value>行: {0:N0} (扫描中...)</value>
+  </data>
+  <data name="MenuCopyNode" xml:space="preserve">
+    <value>复制本节点</value>
+  </data>
+  <data name="MenuCopyNodeAndChildren" xml:space="preserve">
+    <value>复制本节点(连所有子节点)</value>
+  </data>
+  <data name="MenuCopyPage" xml:space="preserve">
+    <value>复制整页</value>
+  </data>
+  <data name="MenuCopySelected" xml:space="preserve">
+    <value>复制选中</value>
+  </data>
+  <data name="MenuOpenLineNotepad" xml:space="preserve">
+    <value>复制当前行用notepad打开</value>
+  </data>
+  <data name="MenuOpenPageNotepad" xml:space="preserve">
+    <value>复制当前页用notepad打开</value>
+  </data>
+  <data name="OpenDialogFilter" xml:space="preserve">
+    <value>日志文件 (*.log;*.txt)|*.log;*.txt|JSON (*.json)|*.json|Markdown (*.md)|*.md|所有文件 (*.*)|*.*</value>
+  </data>
+  <data name="OpenDialogTitle" xml:space="preserve">
+    <value>打开文件</value>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>打开失败: {0}</value>
+  </data>
+  <data name="ReadyStatus" xml:space="preserve">
+    <value>就绪 — 拖拽文件或 Ctrl+O 打开</value>
+  </data>
+  <data name="SearchFoundAt" xml:space="preserve">
+    <value>行 {0:N0}</value>
+  </data>
+  <data name="SearchNotFound" xml:space="preserve">
+    <value>未找到</value>
+  </data>
+  <data name="ThemeTooltip" xml:space="preserve">
+    <value>切换深色/浅色主题</value>
+  </data>
+</root>
