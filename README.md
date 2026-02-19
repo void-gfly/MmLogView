@@ -3,7 +3,7 @@
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.txt)
 
-**MmLogView** 是一款专为开发者设计的高性能、轻量级日志查看工具。基于 .NET 10 WPF 开发，利用内存映射文件 (Memory-Mapped Files) 技术，实现对超大日志文件（GB 级别）的秒级加载与极速检索。
+**MmLogView** 是一款专为开发者设计的高性能、轻量级日志查看工具。基于 .NET 10 WPF 开发，利用内存映射文件 (Memory-Mapped Files) 技术，实现对超大日志文件（GB 级别）的秒级加载与极速检索，同时支持 Markdown 文档的渲染预览。
 
 ## 🚀 核心特性
 
@@ -11,6 +11,7 @@
 - **零开销渲染**：自定义 `LogViewport` 控件，使用 `DrawingVisual` 直接在视口绘制可见行，彻底解决传统 WPF 列表控件在处理数百万行数据时的卡顿问题。
 - **智能索引**：后台异步扫描文件行偏移量，在不阻塞 UI 的前提下建立索引，支持快速跳转与定位。
 - **强大的搜索**：支持全文前向与后向搜索，并能处理其他进程正在写入的日志文件 (FileShare.ReadWrite)。
+- **Markdown 渲染**：内置 Markdown 文档渲染引擎（基于 MdXaml），打开 `.md` 文件时自动切换为渲染预览模式，完美适配深色/浅色主题。
 - **多语言与主题**：
   - 内置中/英文支持，自动跟随系统语言。
   - 支持 **深色 (Dark)** 与 **浅色 (Light)** 主题切换。
@@ -26,6 +27,7 @@
   - `MappedLogFile`: 处理大文件映射与编码检测。
   - `LogViewport`: 高性能绘图引擎。
   - `RecentFilesManager`: 状态持久化管理。
+  - `MdXaml`: Markdown → FlowDocument 原生渲染。
 
 ## 📥 安装与运行
 
