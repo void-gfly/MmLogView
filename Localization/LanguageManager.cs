@@ -25,7 +25,7 @@ public sealed class LanguageManager : INotifyPropertyChanged
     public string BtnSearch => _isEnglish ? "🔍 Search" : "🔍 搜索";
     public string BtnGoTo => _isEnglish ? "↕ Go To" : "↕ 跳行";
     public string ThemeTooltip => _isEnglish ? "Toggle Dark/Light Theme" : "切换深色/浅色主题";
-    public string FeatureText => _isEnglish ? "Supports opening GB-sized log files" : "支持打开G级超大log文件";
+    public string FeatureText => _isEnglish ? "Supports opening GB-sized log files" : "支持打开G级超大log文件,支持MarkDown渲染";
 
     // ── Status Bar ──
     public string ReadyStatus => _isEnglish
@@ -51,10 +51,10 @@ public sealed class LanguageManager : INotifyPropertyChanged
     public string SearchNotFound => _isEnglish ? "Not found" : "未找到";
 
     // ── Open File Dialog ──
-    public string OpenDialogTitle => _isEnglish ? "Open Log File" : "打开日志文件";
+    public string OpenDialogTitle => _isEnglish ? "Open File" : "打开文件";
     public string OpenDialogFilter => _isEnglish
-        ? "Log files (*.log;*.txt)|*.log;*.txt|All files (*.*)|*.*"
-        : "日志文件 (*.log;*.txt)|*.log;*.txt|所有文件 (*.*)|*.*";
+        ? "Log files (*.log;*.txt)|*.log;*.txt|Markdown (*.md)|*.md|All files (*.*)|*.*"
+        : "日志文件 (*.log;*.txt)|*.log;*.txt|Markdown (*.md)|*.md|所有文件 (*.*)|*.*";
 
     // ── GoToLine Dialog ──
     public string GoToLineTitle => _isEnglish ? "Go to Line" : "跳转到行";

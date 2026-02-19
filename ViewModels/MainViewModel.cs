@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using MdXaml;
 using MmLogView.Controls;
 using MmLogView.Core;
 using MmLogView.Localization;
@@ -19,6 +20,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private string _lineInfoText = "";
     private string _searchText = "";
     private string _searchResultInfo = "";
+    private bool _isMarkdownMode;
+    private string _markdownText = "";
     private bool _isSearchVisible;
     private double _scanProgress;
     private bool _isScanningVisible;
@@ -28,6 +31,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private readonly LanguageManager _lang = LanguageManager.Current;
 
     public LogViewport? ViewportControl { get; set; }
+    public MarkdownScrollViewer? MarkdownViewer { get; set; }
 
     public LanguageManager Lang => _lang;
 
@@ -87,6 +91,18 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _isSearchVisible;
         set => SetField(ref _isSearchVisible, value);
+    }
+
+    public bool IsMarkdownMode
+    {
+        get => _isMarkdownMode;
+        set => SetField(ref _isMarkdownMode, value);
+    }
+
+    public string MarkdownText
+    {
+        get => _markdownText;
+        set => SetField(ref _markdownText, value);
     }
 
     public double ScanProgress
@@ -150,20 +166,42 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         try
         {
-            _logFile = new MappedLogFile(filePath);
-            _logFile.LineIndex.ProgressChanged += OnScanProgressChanged;
-            _logFile.LineIndex.ScanCompleted += OnScanCompleted;
+            var ext = Path.GetExtension(filePath);
+            if (string.Equals(ext, ".md", StringComparison.OrdinalIgnoreCase))
+            {
+                // Markdown 模式
+                MarkdownText = File.ReadAllText(filePath);
+                IsMarkdownMode = true;
+                IsScanningVisible = false;
 
-            var fileName = Path.GetFileName(filePath);
-            StatusText = fileName;
-            EncodingText = _logFile.DetectedEncoding.WebName.ToUpperInvariant();
-            FileSizeText = FormatFileSize(_logFile.FileLength);
-            IsScanningVisible = true;
-            ScanProgress = 0;
+                var fileName = Path.GetFileName(filePath);
+                StatusText = fileName;
+                var fi = new FileInfo(filePath);
+                FileSizeText = FormatFileSize(fi.Length);
+                EncodingText = "UTF-8";
+                LineInfoText = "";
+            }
+            else
+            {
+                // 日志模式
+                IsMarkdownMode = false;
+                MarkdownText = "";
 
-            ViewportControl?.SetLogFile(_logFile);
+                _logFile = new MappedLogFile(filePath);
+                _logFile.LineIndex.ProgressChanged += OnScanProgressChanged;
+                _logFile.LineIndex.ScanCompleted += OnScanCompleted;
 
-            _logFile.StartIndexScan();
+                var fileName = Path.GetFileName(filePath);
+                StatusText = fileName;
+                EncodingText = _logFile.DetectedEncoding.WebName.ToUpperInvariant();
+                FileSizeText = FormatFileSize(_logFile.FileLength);
+                IsScanningVisible = true;
+                ScanProgress = 0;
+
+                ViewportControl?.SetLogFile(_logFile);
+
+                _logFile.StartIndexScan();
+            }
 
             // 添加到最近文件历史
             RecentFilesManager.Instance.Add(filePath);
@@ -272,6 +310,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         Application.Current.Resources.MergedDictionaries.Clear();
         Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = themeUri });
+
+        if (MarkdownViewer is not null)
+            MarkdownViewer.MarkdownStyle = _isDarkTheme ? MarkdownStyle.Sasabune : MarkdownStyle.GithubLike;
 
         ViewportControl?.InvalidateVisual();
     }

@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AppVersion>1.0.1</AppVersion>
+    <AppVersion>1.0.2</AppVersion>
     <AssemblyVersion>$(AppVersion)</AssemblyVersion>
     <FileVersion>$(AppVersion)</FileVersion>
     <Version>$(AppVersion)</Version>
@@ -15,6 +15,10 @@
 
   <ItemGroup>
     <Content Include="项目.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MdXaml" Version="1.27.0" />
   </ItemGroup>
 
 </Project>

@@ -33,6 +33,10 @@
     <!-- Dim -->
     <SolidColorBrush x:Key="DimForeground" Color="#808080" />
 
+    <!-- Markdown -->
+    <SolidColorBrush x:Key="MarkdownBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="MarkdownForeground" Color="#1E1E1E" />
+
     <!-- Toolbar Button Style -->
     <Style x:Key="ToolbarButton" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />

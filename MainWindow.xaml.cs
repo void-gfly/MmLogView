@@ -20,6 +20,7 @@ public partial class MainWindow : Window
         DataContext = _vm;
 
         _vm.ViewportControl = LogView;
+        _vm.MarkdownViewer = MdViewer;
 
         if (filePath is not null && File.Exists(filePath))
         {
