@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+*.zip
+dll_strings.txt
+test.md
+新建 文本文档.txt
+生成提示词.txt
