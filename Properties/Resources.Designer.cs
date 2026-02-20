@@ -60,5 +60,6 @@ namespace MmLogView.Properties {
         public static string SearchFoundAt => ResourceManager.GetString("SearchFoundAt", resourceCulture)!;
         public static string SearchNotFound => ResourceManager.GetString("SearchNotFound", resourceCulture)!;
         public static string ThemeTooltip => ResourceManager.GetString("ThemeTooltip", resourceCulture)!;
+        public static string BtnExportPdf => ResourceManager.GetString("BtnExportPdf", resourceCulture)!;
     }
 }

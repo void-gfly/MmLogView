@@ -115,4 +115,7 @@
   <data name="ThemeTooltip" xml:space="preserve">
     <value>切换深色/浅色主题</value>
   </data>
+  <data name="BtnExportPdf" xml:space="preserve">
+    <value>📄 导出PDF</value>
+  </data>
 </root>

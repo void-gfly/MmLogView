@@ -22,6 +22,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private string _searchResultInfo = "";
     private bool _isMarkdownMode;
     private string _markdownText = "";
+    private string _currentFilePath = "";
     private bool _isJsonMode;
     private string _jsonText = "";
     private ObservableCollection<JsonNodeViewModel> _jsonRootNodes = [];
@@ -151,6 +152,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public ICommand SearchNextCommand { get; }
     public ICommand SearchPrevCommand { get; }
     public ICommand ToggleThemeCommand { get; }
+    public ICommand ExportPdfCommand { get; }
 
     public MainViewModel()
     {
@@ -161,6 +163,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         SearchNextCommand = new RelayCommand(OnSearchNext, () => _logFile is not null && !string.IsNullOrEmpty(SearchText));
         SearchPrevCommand = new RelayCommand(OnSearchPrev, () => _logFile is not null && !string.IsNullOrEmpty(SearchText));
         ToggleThemeCommand = new RelayCommand(OnToggleTheme);
+        ExportPdfCommand = new RelayCommand(OnExportPdf, () => IsMarkdownMode);
 
         ResourcesExtension.Instance.PropertyChanged += OnLanguageChanged;
     }
@@ -194,6 +197,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             if (string.Equals(ext, ".md", StringComparison.OrdinalIgnoreCase))
             {
                 // Markdown 模式
+                _currentFilePath = filePath;
                 MarkdownText = File.ReadAllText(filePath);
                 IsMarkdownMode = true;
                 IsJsonMode = false;
@@ -352,6 +356,50 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         else
         {
             SearchResultInfo = ResourcesExtension.Instance.SearchNotFound;
+        }
+    }
+
+    private async void OnExportPdf()
+    {
+        if (!IsMarkdownMode || string.IsNullOrEmpty(MarkdownText)) return;
+
+        var defaultName = string.IsNullOrEmpty(_currentFilePath)
+            ? "output"
+            : Path.GetFileNameWithoutExtension(_currentFilePath);
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export PDF" : "导出PDF",
+            Filter = "PDF (*.pdf)|*.pdf",
+            FileName = defaultName
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Exporting PDF..." : "正在导出PDF...";
+                await Md2Pdf.ExportAsync(MarkdownText, dialog.FileName);
+                StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export PDF success" : "导出PDF成功";
+
+                var prompt = ResourcesExtension.Instance.CurrentCulture == "en-US"
+                    ? "Open the exported PDF?"
+                    : "是否打开导出的PDF文件?";
+                var title = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export PDF" : "导出PDF";
+                if (MessageBox.Show(prompt, title, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? $"Export PDF failed: {ex.Message}" : $"导出PDF失败: {ex.Message}";
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                CommandManager.InvalidateRequerySuggested();
+            }
         }
     }
 

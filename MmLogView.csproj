@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AppVersion>1.0.2</AppVersion>
+    <AppVersion>1.0.3</AppVersion>
     <AssemblyVersion>$(AppVersion)</AssemblyVersion>
     <FileVersion>$(AppVersion)</FileVersion>
     <Version>$(AppVersion)</Version>
@@ -18,8 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Markdig" Version="0.45.0" />
     <PackageReference Include="MdXaml" Version="1.27.0" />
     <PackageReference Include="QS.WPF.Toolkit.GlobalizationSourceGenerator" Version="1.0.3" />
+    <PackageReference Include="Westwind.WebView" Version="0.3.10.1" />
   </ItemGroup>
 
 </Project>

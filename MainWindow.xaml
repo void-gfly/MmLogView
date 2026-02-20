@@ -66,6 +66,10 @@
                             </Button.ContextMenu>
                         </Button>
                     </Grid>
+                    <Button Content="{Binding Source={x:Static properties:ResourcesExtension.Instance}, Path=BtnExportPdf}" 
+                            Command="{Binding ExportPdfCommand}"
+                            Style="{DynamicResource ToolbarButton}"
+                            Margin="0,0,8,0" />
                     <Button Content="{Binding Source={x:Static properties:ResourcesExtension.Instance}, Path=BtnSearch}" 
                             Command="{Binding ToggleSearchCommand}"
                             Style="{DynamicResource ToolbarButton}"

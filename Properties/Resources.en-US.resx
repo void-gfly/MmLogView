@@ -115,4 +115,7 @@
   <data name="ThemeTooltip" xml:space="preserve">
     <value>Toggle Dark/Light Theme</value>
   </data>
+  <data name="BtnExportPdf" xml:space="preserve">
+    <value>📄 Export PDF</value>
+  </data>
 </root>
