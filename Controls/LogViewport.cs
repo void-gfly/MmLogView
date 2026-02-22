@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using MmLogView.Core;
 using MmLogView.Properties;
 
@@ -33,6 +34,9 @@ public sealed class LogViewport : FrameworkElement
     private int _lineNumberWidth = 50;
     private long _selectedLine = -1;
     private string _searchText = string.Empty;
+    private long _hoveredLineForToolTip = -1;
+    private DispatcherTimer? _toolTipTimer;
+    private string _pendingToolTipContent = string.Empty;
 
     public long FirstVisibleLine => _firstVisibleLine;
 
@@ -89,8 +93,20 @@ public sealed class LogViewport : FrameworkElement
         };
         ContextMenuOpening += OnContextMenuOpening;
 
+        _toolTipTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+        _toolTipTimer.Tick += OnToolTipTimerTick;
+
         ClipToBounds = true;
         Focusable = true;
+    }
+
+    private void OnToolTipTimerTick(object? sender, EventArgs e)
+    {
+        _toolTipTimer?.Stop();
+        if (!string.IsNullOrEmpty(_pendingToolTipContent))
+        {
+            ActuallyShowToolTip(_pendingToolTipContent);
+        }
     }
 
     public void SetLogFile(MappedLogFile logFile)
@@ -193,6 +209,99 @@ public sealed class LogViewport : FrameworkElement
         SelectLineAtPoint(e.GetPosition(this));
     }
 
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        
+        var point = e.GetPosition(this);
+        if (TryGetLineAtPoint(point, out long line))
+        {
+            if (line == _hoveredLineForToolTip) return;
+
+            _hoveredLineForToolTip = line;
+            _toolTipTimer?.Stop();
+
+            int index = (int)(line - _firstVisibleLine);
+            if (index >= 0 && index < _visibleLines.Length)
+            {
+                string content = _visibleLines[index];
+                double contentWidth = ActualWidth - _scrollBar.Width;
+                double maxObjWidth = Math.Max(1, contentWidth - _lineNumberWidth - 8);
+
+                var ft = CreateFormattedText(content, Brushes.Black);
+                if (ft.Width > maxObjWidth)
+                {
+                    _pendingToolTipContent = content;
+                    _toolTipTimer?.Start();
+                }
+                else
+                {
+                    _pendingToolTipContent = string.Empty;
+                    HideToolTip();
+                }
+            }
+            else
+            {
+                _pendingToolTipContent = string.Empty;
+                HideToolTip();
+            }
+        }
+        else
+        {
+            if (_hoveredLineForToolTip != -1)
+            {
+                _hoveredLineForToolTip = -1;
+                _pendingToolTipContent = string.Empty;
+                _toolTipTimer?.Stop();
+                HideToolTip();
+            }
+        }
+    }
+
+    protected override void OnMouseLeave(MouseEventArgs e)
+    {
+        base.OnMouseLeave(e);
+        _hoveredLineForToolTip = -1;
+        _pendingToolTipContent = string.Empty;
+        _toolTipTimer?.Stop();
+        HideToolTip();
+    }
+
+    private void ActuallyShowToolTip(string content)
+    {
+        var tip = this.ToolTip as ToolTip;
+        if (tip == null)
+        {
+            tip = new ToolTip
+            {
+                Placement = PlacementMode.Mouse,
+                VerticalOffset = 15,
+                HorizontalOffset = 15,
+                HasDropShadow = true
+            };
+            this.ToolTip = tip;
+        }
+
+        var textBlock = new TextBlock
+        {
+            Text = content,
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = SystemParameters.WorkArea.Width * 0.6
+        };
+        tip.Content = textBlock;
+
+        tip.IsOpen = false;
+        tip.IsOpen = true;
+    }
+
+    private void HideToolTip()
+    {
+        if (this.ToolTip is ToolTip tip)
+        {
+            tip.IsOpen = false;
+        }
+    }
+
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         base.OnRenderSizeChanged(sizeInfo);
@@ -265,6 +374,7 @@ public sealed class LogViewport : FrameworkElement
                 var contentText = CreateFormattedText(lineContent, isSelected ? selectionFg : editorFg);
                 contentText.MaxTextWidth = Math.Max(1, contentWidth - _lineNumberWidth - 8);
                 contentText.MaxTextHeight = _lineHeight;
+                contentText.Trimming = TextTrimming.CharacterEllipsis;
                 var textOrigin = new Point(_lineNumberWidth + 8, y + (_lineHeight - contentText.Height) / 2);
 
                 if (!string.IsNullOrEmpty(_searchText))
