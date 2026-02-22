@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using MdXaml;
+using Microsoft.Web.WebView2.Wpf;
 using MmLogView.Controls;
 using MmLogView.Core;
 using MmLogView.Properties;
@@ -33,7 +33,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private int _selectedLanguageIndex;
 
     public LogViewport? ViewportControl { get; set; }
-    public MarkdownScrollViewer? MarkdownViewer { get; set; }
+    public WebView2? WebView { get; set; }
+    private bool _webViewReady;
+    private string? _pendingMarkdownHtml;
 
     public ObservableCollection<string> RecentFiles => RecentFilesManager.Instance.Items;
 
@@ -203,6 +205,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 IsJsonMode = false;
                 IsScanningVisible = false;
 
+                LoadMarkdownToWebView();
+
                 var fileName = Path.GetFileName(filePath);
                 StatusText = fileName;
                 var fi = new FileInfo(filePath);
@@ -359,9 +363,15 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+
     private async void OnExportPdf()
     {
         if (!IsMarkdownMode || string.IsNullOrEmpty(MarkdownText)) return;
+        if (WebView?.CoreWebView2 == null)
+        {
+            MessageBox.Show("WebView2 not ready.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
 
         var defaultName = string.IsNullOrEmpty(_currentFilePath)
             ? "output"
@@ -374,32 +384,61 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             FileName = defaultName
         };
 
-        if (dialog.ShowDialog() == true)
-        {
-            try
-            {
-                StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Exporting PDF..." : "正在导出PDF...";
-                await Md2Pdf.ExportAsync(MarkdownText, dialog.FileName);
-                StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export PDF success" : "导出PDF成功";
+        if (dialog.ShowDialog() != true) return;
 
-                var prompt = ResourcesExtension.Instance.CurrentCulture == "en-US"
-                    ? "Open the exported PDF?"
-                    : "是否打开导出的PDF文件?";
-                var title = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export PDF" : "导出PDF";
-                if (MessageBox.Show(prompt, title, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
-                {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
-                }
-            }
-            catch (Exception ex)
+        try
+        {
+            StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Exporting PDF..." : "正在导出PDF...";
+
+            // Use ASCII temp path to avoid WebView2 hanging on non-ASCII output paths
+            var tempPdfPath = Path.Combine(Path.GetTempPath(), $"mmlogview_export_{System.Guid.NewGuid():N}.pdf");
+
+            // Always export PDF with light theme for readability on paper
+            var lightHtml = Md2Pdf.ConvertToHtml(MarkdownText, isDarkTheme: false);
+            var navTcs = new System.Threading.Tasks.TaskCompletionSource();
+            void OnNavCompleted(object? s, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs a)
             {
-                StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? $"Export PDF failed: {ex.Message}" : $"导出PDF失败: {ex.Message}";
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                WebView!.CoreWebView2.NavigationCompleted -= OnNavCompleted;
+                navTcs.TrySetResult();
             }
-            finally
+            WebView.CoreWebView2.NavigationCompleted += OnNavCompleted;
+            NavigateToHtml(lightHtml);
+            await navTcs.Task;
+
+            var settings = WebView.CoreWebView2.Environment.CreatePrintSettings();
+            settings.MarginTop = 0.5;
+            settings.MarginBottom = 0.5;
+            settings.MarginLeft = 0.4;
+            settings.MarginRight = 0.4;
+            settings.ScaleFactor = 1.0;
+
+            bool success = await WebView.CoreWebView2.PrintToPdfAsync(tempPdfPath, settings);
+
+            // Restore the current theme in WebView
+            LoadMarkdownToWebView();
+
+            if (!success) throw new System.Exception("PDF generation failed.");
+
+            if (File.Exists(dialog.FileName)) File.Delete(dialog.FileName);
+            File.Move(tempPdfPath, dialog.FileName);
+
+            StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export PDF success" : "导出PDF成功";
+
+            var prompt = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export success, open it?" : "导出成功，是否打开？";
+            var title = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Export PDF" : "导出PDF";
+            if (MessageBox.Show(prompt, title, MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
             {
-                CommandManager.InvalidateRequerySuggested();
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
             }
+        }
+        catch (System.Exception ex)
+        {
+            StatusText = ResourcesExtension.Instance.CurrentCulture == "en-US" ? $"Export PDF failed: {ex.Message}" : $"导出PDF失败: {ex.Message}";
+            MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 
@@ -413,10 +452,61 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         Application.Current.Resources.MergedDictionaries.Clear();
         Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = themeUri });
 
-        if (MarkdownViewer is not null)
-            MarkdownViewer.MarkdownStyle = _isDarkTheme ? MarkdownStyle.Sasabune : MarkdownStyle.GithubLike;
+        // Reload Markdown in WebView with the theme-matching style
+        if (IsMarkdownMode && !string.IsNullOrEmpty(MarkdownText))
+            LoadMarkdownToWebView();
 
         ViewportControl?.InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Called by MainWindow after WebView2 has been successfully initialized.
+    /// </summary>
+    public void OnWebViewReady()
+    {
+        _webViewReady = true;
+
+        // Block WebView2 from reloading the page when an anchor link (#id) is clicked.
+        // The JS in the page handles scrolling; we just need to prevent the navigation.
+        WebView!.CoreWebView2.NavigationStarting += (s, e) =>
+        {
+            if (e.Uri.Contains('#') && e.Uri.StartsWith("file:///"))
+            {
+                // Same-file anchor navigation — cancel it, let JS handle scrolling
+                var baseUri = e.Uri.Split('#')[0];
+                var currentBase = WebView.Source?.AbsoluteUri.Split('#')[0] ?? "";
+                if (string.Equals(baseUri, currentBase, System.StringComparison.OrdinalIgnoreCase))
+                    e.Cancel = true;
+            }
+        };
+
+        if (_pendingMarkdownHtml != null)
+        {
+            NavigateToHtml(_pendingMarkdownHtml);
+            _pendingMarkdownHtml = null;
+        }
+    }
+
+    private static readonly string TempHtmlPath =
+        Path.Combine(Path.GetTempPath(), "mmlogview_preview.html");
+
+    private void NavigateToHtml(string html)
+    {
+        File.WriteAllText(TempHtmlPath, html, System.Text.Encoding.UTF8);
+        WebView!.CoreWebView2.Navigate("file:///" + TempHtmlPath.Replace('\\', '/'));
+    }
+
+    private void LoadMarkdownToWebView()
+    {
+        var html = Md2Pdf.ConvertToHtml(MarkdownText, _isDarkTheme);
+        if (_webViewReady && WebView?.CoreWebView2 != null)
+        {
+            NavigateToHtml(html);
+        }
+        else
+        {
+            _pendingMarkdownHtml = html;
+        }
     }
 
     private static string FormatFileSize(long bytes)

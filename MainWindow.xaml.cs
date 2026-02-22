@@ -20,12 +20,21 @@ public partial class MainWindow : Window
         DataContext = _vm;
 
         _vm.ViewportControl = LogView;
-        _vm.MarkdownViewer = MdViewer;
+        _vm.WebView = MdWebView;
+        _ = InitWebView2Async();
 
         if (filePath is not null && File.Exists(filePath))
         {
             _vm.OpenFile(filePath);
         }
+    }
+
+    private async System.Threading.Tasks.Task InitWebView2Async()
+    {
+        var userDataFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MmLogView_WebView2");
+        var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null, userDataFolder);
+        await MdWebView.EnsureCoreWebView2Async(env);
+        _vm.OnWebViewReady();
     }
 
     private void Window_Drop(object sender, DragEventArgs e)

@@ -1,24 +1,65 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Markdig;
-using Westwind.WebView.HtmlToPdf;
 
 namespace MmLogView.Core;
 
-public static class Md2Pdf
+public static partial class Md2Pdf
 {
-    public static async Task ExportAsync(string markdownContent, string outputPdfPath)
-    {
-        // 1. Convert Markdown to HTML
-        var pipeline = new MarkdownPipelineBuilder()
-            .UseAdvancedExtensions()
-            .Build();
-        var htmlContent = Markdown.ToHtml(markdownContent, pipeline);
+    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .Build();
 
-        // Wrap with GitHub-like styling
-        var fullHtml = $@"<!DOCTYPE html>
+    // Match <h1>...</h1> through <h6>...</h6> tags without an existing id attribute
+    [GeneratedRegex(@"<(h[1-6])>(.*?)</\1>", RegexOptions.IgnoreCase)]
+    private static partial Regex HeadingRegex();
+
+    /// <summary>
+    /// Generate GitHub-style slug from heading text:
+    /// lowercase, replace spaces with hyphens, strip punctuation except CJK and hyphens.
+    /// </summary>
+    private static string GitHubSlug(string text)
+    {
+        // Strip HTML tags from heading text
+        var plain = Regex.Replace(text, "<.*?>", "").Trim();
+        // Lowercase
+        plain = plain.ToLowerInvariant();
+        // Replace spaces with hyphens
+        plain = Regex.Replace(plain, @"\s+", "-");
+        // Remove characters that are not: word chars (\w includes CJK), hyphens, Chinese/Japanese/Korean
+        plain = Regex.Replace(plain, @"[^\w\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef-]", "");
+        return plain;
+    }
+
+    /// <summary>
+    /// Post-process HTML to add GitHub-style id attributes to headings.
+    /// </summary>
+    private static string AddHeadingIds(string html)
+    {
+        return HeadingRegex().Replace(html, match =>
+        {
+            var tag = match.Groups[1].Value;
+            var content = match.Groups[2].Value;
+            var slug = GitHubSlug(content);
+            return $"<{tag} id=\"{slug}\">{content}</{tag}>";
+        });
+    }
+
+    public static string ConvertToHtml(string markdownContent, bool isDarkTheme = false)
+    {
+        var htmlContent = Markdown.ToHtml(markdownContent, Pipeline);
+        // Add GitHub-style heading IDs for TOC anchor navigation
+        htmlContent = AddHeadingIds(htmlContent);
+
+        var bgColor = isDarkTheme ? "#1e1e1e" : "#ffffff";
+        var textColor = isDarkTheme ? "#d4d4d4" : "#24292f";
+        var borderColor = isDarkTheme ? "#444" : "#d0d7de";
+        var codeBg = isDarkTheme ? "#2d2d2d" : "#f6f8fa";
+        var quoteBorder = isDarkTheme ? "#555" : "#dfe2e5";
+        var quoteColor = isDarkTheme ? "#aaa" : "#6a737d";
+        var tableBorder = isDarkTheme ? "#555" : "#dfe2e5";
+        var linkColor = isDarkTheme ? "#58a6ff" : "#0969da";
+
+        return $@"<!DOCTYPE html>
 <html>
 <head>
     <meta charset='utf-8'>
@@ -26,85 +67,66 @@ public static class Md2Pdf
         body {{
             font-family: ""Microsoft YaHei"", ""PingFang SC"", ""Segoe UI"", Arial, sans-serif;
             line-height: 1.6;
-            color: #24292f;
+            color: {textColor};
+            background-color: {bgColor};
             max-width: 860px;
             margin: 0 auto;
             padding: 30px;
         }}
         h1, h2, h3, h4, h5, h6 {{
-            border-bottom: 1px solid #d0d7de;
+            border-bottom: 1px solid {borderColor};
             padding-bottom: 6px;
             margin-top: 24px;
         }}
         pre {{
-            background-color: #f6f8fa;
+            background-color: {codeBg};
             padding: 16px;
             border-radius: 6px;
             overflow: auto;
         }}
         code {{
             font-family: ui-monospace, ""SFMono-Regular"", Consolas, ""Liberation Mono"", monospace;
-            background-color: rgba(175,184,193,0.2);
+            background-color: {codeBg};
             padding: 0.2em 0.4em;
             border-radius: 4px;
             font-size: 90%;
         }}
         pre code {{ background: none; padding: 0; }}
         blockquote {{
-            border-left: 4px solid #dfe2e5;
-            color: #6a737d;
+            border-left: 4px solid {quoteBorder};
+            color: {quoteColor};
             padding-left: 1em;
             margin-left: 0;
         }}
         table {{ border-collapse: collapse; width: 100%; }}
-        th, td {{ border: 1px solid #dfe2e5; padding: 6px 13px; }}
-        th {{ background-color: #f6f8fa; }}
+        th, td {{ border: 1px solid {tableBorder}; padding: 6px 13px; }}
+        th {{ background-color: {codeBg}; }}
         img {{ max-width: 100%; }}
+        a {{ color: {linkColor}; cursor: pointer; }}
     </style>
 </head>
 <body>
 {htmlContent}
+<script>
+// Intercept anchor clicks and scroll to target element
+document.addEventListener('click', function(e) {{
+    var a = e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href) return;
+    var hashIdx = href.indexOf('#');
+    if (hashIdx === -1) return;
+    var id = decodeURIComponent(href.substring(hashIdx + 1));
+    if (!id) return;
+    var target = document.getElementById(id);
+    if (target) {{
+        e.preventDefault();
+        e.stopPropagation();
+        target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+    }}
+}}, true);
+</script>
 </body>
 </html>";
-
-        // 2. Write HTML to a temp file (HtmlToPdfHost requires a file path, not a string)
-        var tempHtmlPath = Path.Combine(Path.GetTempPath(), $"mmlogview_{Guid.NewGuid():N}.html");
-        // WebView2 PrintToPdfAsync may hang with non-ASCII (Chinese) output paths.
-        // Write to an ASCII temp path first, then move to the real destination.
-        var tempPdfPath = Path.Combine(Path.GetTempPath(), $"mmlogview_{Guid.NewGuid():N}.pdf");
-        try
-        {
-            await File.WriteAllTextAsync(tempHtmlPath, fullHtml, System.Text.Encoding.UTF8);
-
-            // 3. Use Edge WebView2 (pre-installed on Win10/11) to render and export PDF.
-            //    UseServerPdfGeneration = true bypasses the DevTools protocol (which requires
-            //    an active desktop window) and uses the built-in WebView PDF API instead.
-            await Task.Run(async () =>
-            {
-                HtmlToPdfDefaults.UseServerPdfGeneration = true;
-
-                var host = new HtmlToPdfHost();
-                var result = await host.PrintToPdfAsync(tempHtmlPath, tempPdfPath, new WebViewPrintSettings
-                {
-                    MarginTop = 0.5,
-                    MarginBottom = 0.5,
-                    MarginLeft = 0.4,
-                    MarginRight = 0.4,
-                    ScaleFactor = 1.0f
-                });
-
-                if (!result.IsSuccess)
-                    throw new Exception(result.Message ?? "PDF generation failed.");
-            });
-
-            // Move from ASCII temp path to the user's desired (possibly non-ASCII) path
-            if (File.Exists(outputPdfPath)) File.Delete(outputPdfPath);
-            File.Move(tempPdfPath, outputPdfPath);
-        }
-        finally
-        {
-            if (File.Exists(tempHtmlPath)) File.Delete(tempHtmlPath);
-            if (File.Exists(tempPdfPath)) File.Delete(tempPdfPath);
-        }
     }
 }

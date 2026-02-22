@@ -19,9 +19,8 @@
 
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.45.0" />
-    <PackageReference Include="MdXaml" Version="1.27.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3800.47" />
     <PackageReference Include="QS.WPF.Toolkit.GlobalizationSourceGenerator" Version="1.0.3" />
-    <PackageReference Include="Westwind.WebView" Version="0.3.10.1" />
   </ItemGroup>
 
 </Project>
