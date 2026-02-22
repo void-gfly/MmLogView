@@ -13,6 +13,64 @@ public partial class JsonViewport : UserControl
         InitializeComponent();
     }
 
+    public bool SearchNext(string text)
+    {
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(JsonTextBox.Text)) return false;
+
+        int startIndex = JsonTextBox.SelectionStart + JsonTextBox.SelectionLength;
+        int index = JsonTextBox.Text.IndexOf(text, startIndex, StringComparison.OrdinalIgnoreCase);
+
+        if (index < 0)
+        {
+            // wrap around
+            index = JsonTextBox.Text.IndexOf(text, 0, StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (index >= 0)
+        {
+            JsonTextBox.Focus();
+            JsonTextBox.Select(index, text.Length);
+
+            var rect = JsonTextBox.GetRectFromCharacterIndex(index);
+            if (!rect.IsEmpty)
+            {
+                JsonTextBox.ScrollToVerticalOffset(JsonTextBox.VerticalOffset + rect.Top - JsonTextBox.ViewportHeight / 2);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public bool SearchPrev(string text)
+    {
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(JsonTextBox.Text)) return false;
+
+        int startIndex = JsonTextBox.SelectionStart - 1;
+        if (startIndex < 0) startIndex = JsonTextBox.Text.Length - 1;
+
+        int index = JsonTextBox.Text.LastIndexOf(text, startIndex, StringComparison.OrdinalIgnoreCase);
+
+        if (index < 0)
+        {
+            // wrap around
+            index = JsonTextBox.Text.LastIndexOf(text, JsonTextBox.Text.Length - 1, StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (index >= 0)
+        {
+            JsonTextBox.Focus();
+            JsonTextBox.Select(index, text.Length);
+
+            var rect = JsonTextBox.GetRectFromCharacterIndex(index);
+            if (!rect.IsEmpty)
+            {
+                JsonTextBox.ScrollToVerticalOffset(JsonTextBox.VerticalOffset + rect.Top - JsonTextBox.ViewportHeight / 2);
+            }
+            return true;
+        }
+        return false;
+    }
+
     private void JsonTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
         if (_isSyncing || e.NewValue is not JsonNodeViewModel node) return;

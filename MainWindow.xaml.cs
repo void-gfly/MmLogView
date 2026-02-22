@@ -20,6 +20,7 @@ public partial class MainWindow : Window
         DataContext = _vm;
 
         _vm.ViewportControl = LogView;
+        _vm.JsonViewportControl = JsonView;
         _vm.WebView = MdWebView;
         _ = InitWebView2Async();
 

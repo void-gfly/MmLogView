@@ -33,6 +33,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private int _selectedLanguageIndex;
 
     public LogViewport? ViewportControl { get; set; }
+    public JsonViewport? JsonViewportControl { get; set; }
     public WebView2? WebView { get; set; }
     private bool _webViewReady;
     private string? _pendingMarkdownHtml;
@@ -80,7 +81,13 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public string SearchText
     {
         get => _searchText;
-        set => SetField(ref _searchText, value);
+        set
+        {
+            if (SetField(ref _searchText, value))
+            {
+                if (ViewportControl != null) ViewportControl.SearchText = value;
+            }
+        }
     }
 
     public string SearchResultInfo
@@ -162,8 +169,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         OpenRecentFileCommand = new RelayCommand<string>(OnOpenRecentFile);
         GoToLineCommand = new RelayCommand(OnGoToLine, () => _logFile is not null);
         ToggleSearchCommand = new RelayCommand(OnToggleSearch);
-        SearchNextCommand = new RelayCommand(OnSearchNext, () => _logFile is not null && !string.IsNullOrEmpty(SearchText));
-        SearchPrevCommand = new RelayCommand(OnSearchPrev, () => _logFile is not null && !string.IsNullOrEmpty(SearchText));
+        SearchNextCommand = new RelayCommand(OnSearchNext, () => !string.IsNullOrEmpty(SearchText));
+        SearchPrevCommand = new RelayCommand(OnSearchPrev, () => !string.IsNullOrEmpty(SearchText));
         ToggleThemeCommand = new RelayCommand(OnToggleTheme);
         ExportPdfCommand = new RelayCommand(OnExportPdf, () => IsMarkdownMode);
 
@@ -192,7 +199,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public void OpenFile(string filePath)
     {
         _logFile?.Dispose();
-
+        _logFile = null;
+        
         try
         {
             var ext = Path.GetExtension(filePath);
@@ -329,16 +337,40 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         IsSearchVisible = !IsSearchVisible;
     }
 
-    private void OnSearchNext()
+    private async void OnSearchNext()
     {
-        if (_logFile is null || string.IsNullOrEmpty(SearchText)) return;
+        if (string.IsNullOrEmpty(SearchText)) return;
+
+        if (IsMarkdownMode && WebView?.CoreWebView2 != null)
+        {
+            var jsSearchNode = $"window.find('{SearchText.Replace("'", "\\'")}', false, false, true, false, false, false);";
+            var result = await WebView.CoreWebView2.ExecuteScriptAsync(jsSearchNode);
+            if (result == "true")
+            {
+                SearchResultInfo = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Found" : "已找到";
+            }
+            else
+            {
+                SearchResultInfo = ResourcesExtension.Instance.SearchNotFound;
+            }
+            return;
+        }
+
+        if (IsJsonMode && JsonViewportControl != null)
+        {
+            bool found = JsonViewportControl.SearchNext(SearchText);
+            SearchResultInfo = found ? (ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Found" : "已找到") : ResourcesExtension.Instance.SearchNotFound;
+            return;
+        }
+
+        if (_logFile is null) return;
 
         long startLine = ViewportControl?.FirstVisibleLine + 1 ?? 0;
-        var result = _logFile.SearchForward(SearchText, startLine);
-        if (result >= 0)
+        var logResult = _logFile.SearchForward(SearchText, startLine);
+        if (logResult >= 0)
         {
-            ViewportControl?.ScrollToLine(result);
-            SearchResultInfo = string.Format(ResourcesExtension.Instance.SearchFoundAt, result + 1);
+            ViewportControl?.ScrollToLine(logResult);
+            SearchResultInfo = string.Format(ResourcesExtension.Instance.SearchFoundAt, logResult + 1);
         }
         else
         {
@@ -346,16 +378,40 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private void OnSearchPrev()
+    private async void OnSearchPrev()
     {
-        if (_logFile is null || string.IsNullOrEmpty(SearchText)) return;
+        if (string.IsNullOrEmpty(SearchText)) return;
+
+        if (IsMarkdownMode && WebView?.CoreWebView2 != null)
+        {
+            var jsSearchNode = $"window.find('{SearchText.Replace("'", "\\'")}', false, true, true, false, false, false);";
+            var result = await WebView.CoreWebView2.ExecuteScriptAsync(jsSearchNode);
+            if (result == "true")
+            {
+                SearchResultInfo = ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Found" : "已找到";
+            }
+            else
+            {
+                SearchResultInfo = ResourcesExtension.Instance.SearchNotFound;
+            }
+            return;
+        }
+
+        if (IsJsonMode && JsonViewportControl != null)
+        {
+            bool found = JsonViewportControl.SearchPrev(SearchText);
+            SearchResultInfo = found ? (ResourcesExtension.Instance.CurrentCulture == "en-US" ? "Found" : "已找到") : ResourcesExtension.Instance.SearchNotFound;
+            return;
+        }
+
+        if (_logFile is null) return;
 
         long startLine = ViewportControl?.FirstVisibleLine - 1 ?? 0;
-        var result = _logFile.SearchBackward(SearchText, startLine);
-        if (result >= 0)
+        var logResult = _logFile.SearchBackward(SearchText, startLine);
+        if (logResult >= 0)
         {
-            ViewportControl?.ScrollToLine(result);
-            SearchResultInfo = string.Format(ResourcesExtension.Instance.SearchFoundAt, result + 1);
+            ViewportControl?.ScrollToLine(logResult);
+            SearchResultInfo = string.Format(ResourcesExtension.Instance.SearchFoundAt, logResult + 1);
         }
         else
         {

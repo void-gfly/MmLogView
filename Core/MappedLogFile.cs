@@ -182,9 +182,13 @@ public sealed class MappedLogFile : IDisposable
 
     public void Dispose()
     {
-        _scanCts?.Cancel();
-        _scanCts?.Dispose();
-        _mmf.Dispose();
-        _fileStream.Dispose();
+        var cts = Interlocked.Exchange(ref _scanCts, null);
+        if (cts != null)
+        {
+            try { cts.Cancel(); } catch (ObjectDisposedException) { }
+            cts.Dispose();
+        }
+        _mmf?.Dispose();
+        _fileStream?.Dispose();
     }
 }

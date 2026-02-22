@@ -32,8 +32,22 @@ public sealed class LogViewport : FrameworkElement
     private double _fontSize = 14;
     private int _lineNumberWidth = 50;
     private long _selectedLine = -1;
+    private string _searchText = string.Empty;
 
     public long FirstVisibleLine => _firstVisibleLine;
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (_searchText != value)
+            {
+                _searchText = value;
+                Render();
+            }
+        }
+    }
 
     public LogViewport()
     {
@@ -251,7 +265,24 @@ public sealed class LogViewport : FrameworkElement
                 var contentText = CreateFormattedText(lineContent, isSelected ? selectionFg : editorFg);
                 contentText.MaxTextWidth = Math.Max(1, contentWidth - _lineNumberWidth - 8);
                 contentText.MaxTextHeight = _lineHeight;
-                dc.DrawText(contentText, new Point(_lineNumberWidth + 8, y + (_lineHeight - contentText.Height) / 2));
+                var textOrigin = new Point(_lineNumberWidth + 8, y + (_lineHeight - contentText.Height) / 2);
+
+                if (!string.IsNullOrEmpty(_searchText))
+                {
+                    int searchIdx = 0;
+                    var highlightBrush = FindBrush("SearchHighlightBrush", Brushes.Orange);
+                    while ((searchIdx = lineContent.IndexOf(_searchText, searchIdx, StringComparison.OrdinalIgnoreCase)) >= 0)
+                    {
+                        var geom = contentText.BuildHighlightGeometry(textOrigin, searchIdx, _searchText.Length);
+                        if (geom != null)
+                        {
+                            dc.DrawGeometry(highlightBrush, null, geom);
+                        }
+                        searchIdx += _searchText.Length;
+                    }
+                }
+
+                dc.DrawText(contentText, textOrigin);
             }
         }
     }
