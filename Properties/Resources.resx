@@ -82,6 +82,9 @@
   <data name="MenuCopyNodeAndChildren" xml:space="preserve">
     <value>复制本节点(连所有子节点)</value>
   </data>
+  <data name="MenuEditNode" xml:space="preserve">
+    <value>编辑</value>
+  </data>
   <data name="MenuCopyPage" xml:space="preserve">
     <value>复制整页</value>
   </data>
@@ -117,5 +120,26 @@
   </data>
   <data name="BtnExportPdf" xml:space="preserve">
     <value>📄 导出PDF</value>
+  </data>
+  <data name="JsonEditDialogTitle" xml:space="preserve">
+    <value>编辑 JSON 节点</value>
+  </data>
+  <data name="JsonEditNodeLabel" xml:space="preserve">
+    <value>节点: {0}</value>
+  </data>
+  <data name="JsonEditTypeLabel" xml:space="preserve">
+    <value>类型: {0}</value>
+  </data>
+  <data name="JsonEditHint" xml:space="preserve">
+    <value>字符串可直接输入文本；布尔值请输入 true 或 false；null 请输入 null。Ctrl+Enter 可直接确认。</value>
+  </data>
+  <data name="JsonEditInvalidInput" xml:space="preserve">
+    <value>输入内容与当前 JSON 节点类型不匹配。</value>
+  </data>
+  <data name="JsonEditStringFooterHint" xml:space="preserve">
+    <value>Ctrl+Enter 确认保存。字符串保持原样输入，超长文本可直接横向滚动查看。</value>
+  </data>
+  <data name="JsonEditTypedFooterHint" xml:space="preserve">
+    <value>Ctrl+Enter 确认保存。请保持当前节点的数据类型不变。</value>
   </data>
 </root>

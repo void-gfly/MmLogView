@@ -39,7 +39,10 @@
                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 PreviewMouseRightButtonDown="TreeViewItem_PreviewMouseRightButtonDown">
                         <StackPanel.ContextMenu>
-                            <ContextMenu>
+                            <ContextMenu Opened="ContextMenu_Opened">
+                                <MenuItem x:Name="EditNodeMenuItem"
+                                          Header="{Binding Source={x:Static properties:ResourcesExtension.Instance}, Path=MenuEditNode}"
+                                          Click="MenuEditNode_Click" />
                                 <MenuItem Header="{Binding Source={x:Static properties:ResourcesExtension.Instance}, Path=MenuCopyNode}"
                                           Click="MenuCopyNode_Click" />
                                 <MenuItem Header="{Binding Source={x:Static properties:ResourcesExtension.Instance}, Path=MenuCopyNodeAndChildren}"

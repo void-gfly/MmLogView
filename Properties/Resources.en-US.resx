@@ -82,6 +82,9 @@
   <data name="MenuCopyNodeAndChildren" xml:space="preserve">
     <value>Copy Node &amp; Children</value>
   </data>
+  <data name="MenuEditNode" xml:space="preserve">
+    <value>Edit</value>
+  </data>
   <data name="MenuCopyPage" xml:space="preserve">
     <value>Copy Page</value>
   </data>
@@ -117,5 +120,26 @@
   </data>
   <data name="BtnExportPdf" xml:space="preserve">
     <value>📄 Export PDF</value>
+  </data>
+  <data name="JsonEditDialogTitle" xml:space="preserve">
+    <value>Edit JSON Node</value>
+  </data>
+  <data name="JsonEditNodeLabel" xml:space="preserve">
+    <value>Node: {0}</value>
+  </data>
+  <data name="JsonEditTypeLabel" xml:space="preserve">
+    <value>Type: {0}</value>
+  </data>
+  <data name="JsonEditHint" xml:space="preserve">
+    <value>Enter plain text for strings; use true or false for booleans; use null for null values. Press Ctrl+Enter to confirm.</value>
+  </data>
+  <data name="JsonEditInvalidInput" xml:space="preserve">
+    <value>The input does not match the current JSON node type.</value>
+  </data>
+  <data name="JsonEditStringFooterHint" xml:space="preserve">
+    <value>Press Ctrl+Enter to save. String values are edited as plain text, and long content can be reviewed with horizontal scrolling.</value>
+  </data>
+  <data name="JsonEditTypedFooterHint" xml:space="preserve">
+    <value>Press Ctrl+Enter to save. Keep the edited value in the same data type as the current node.</value>
   </data>
 </root>

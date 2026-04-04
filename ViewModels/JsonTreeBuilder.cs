@@ -35,6 +35,7 @@ public static class JsonTreeBuilder
         int startPos = sb.Length;
         string indent = new string(' ', indentLevel * 2);
         string childIndent = new string(' ', (indentLevel + 1) * 2);
+        node.ValueKind = element.ValueKind;
 
         switch (element.ValueKind)
         {

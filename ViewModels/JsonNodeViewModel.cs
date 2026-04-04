@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace MmLogView.ViewModels;
 
@@ -11,6 +12,7 @@ public sealed class JsonNodeViewModel : INotifyPropertyChanged
 
     public string Name { get; set; } = "";
     public string Value { get; set; } = "";
+    public JsonValueKind ValueKind { get; set; }
     
     public int TextStart { get; set; }
     public int TextLength { get; set; }
@@ -44,6 +46,8 @@ public sealed class JsonNodeViewModel : INotifyPropertyChanged
     }
 
     public ObservableCollection<JsonNodeViewModel> Children { get; } = new();
+
+    public bool IsEditableLeaf => Children.Count == 0 && ValueKind is not JsonValueKind.Object and not JsonValueKind.Array;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using MmLogView.ViewModels;
+using MmLogView.Properties;
 
 namespace MmLogView.Controls;
 
@@ -177,6 +178,61 @@ public partial class JsonViewport : UserControl
             }
         }
     }
+
+    private void MenuEditNode_Click(object sender, RoutedEventArgs e)
+    {
+        if (JsonTreeView.SelectedItem is not JsonNodeViewModel node || !node.IsEditableLeaf)
+        {
+            return;
+        }
+
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new JsonNodeEditDialog(node)
+        {
+            Owner = Window.GetWindow(this)
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            _isSyncing = true;
+            viewModel.ApplyJsonNodeEdit(node, dialog.EditedText);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, ResourcesExtension.Instance.InvalidInputTitle, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _isSyncing = false;
+        }
+    }
+
+    private void ContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ContextMenu contextMenu)
+        {
+            return;
+        }
+
+        foreach (var item in contextMenu.Items)
+        {
+            if (item is MenuItem menuItem && menuItem.Name == "EditNodeMenuItem")
+            {
+                menuItem.IsEnabled = JsonTreeView.SelectedItem is JsonNodeViewModel node && node.IsEditableLeaf;
+                break;
+            }
+        }
+    }
+
     private void TreeViewItem_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (sender is StackPanel panel && panel.DataContext is JsonNodeViewModel node)

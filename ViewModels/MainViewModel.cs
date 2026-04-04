@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Web.WebView2.Wpf;
 using MmLogView.Controls;
 using MmLogView.Core;
@@ -200,6 +202,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         _logFile?.Dispose();
         _logFile = null;
+        _currentFilePath = filePath;
         
         try
         {
@@ -207,7 +210,6 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             if (string.Equals(ext, ".md", StringComparison.OrdinalIgnoreCase))
             {
                 // Markdown 模式
-                _currentFilePath = filePath;
                 MarkdownText = File.ReadAllText(filePath);
                 IsMarkdownMode = true;
                 IsJsonMode = false;
@@ -225,7 +227,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             else if (string.Equals(ext, ".json", StringComparison.OrdinalIgnoreCase))
             {
                 // Json 模式
-                var jsonString = File.ReadAllText(filePath);
+                var jsonString = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
                 try
                 {
                     var (formattedText, rootNode) = JsonTreeBuilder.Build(jsonString);
@@ -563,6 +565,132 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             _pendingMarkdownHtml = html;
         }
+    }
+
+    public void ApplyJsonNodeEdit(JsonNodeViewModel node, string editedText)
+    {
+        if (!IsJsonMode || !node.IsEditableLeaf)
+        {
+            return;
+        }
+
+        var rootJsonNode = JsonNode.Parse(JsonText);
+        if (rootJsonNode is null)
+        {
+            throw new InvalidOperationException(ResourcesExtension.Instance.JsonEditInvalidInput);
+        }
+
+        var replacementNode = CreateReplacementJsonNode(node.ValueKind, editedText);
+        var pathSegments = GetJsonPathSegments(node);
+
+        if (pathSegments.Count == 0)
+        {
+            rootJsonNode = replacementNode;
+        }
+        else
+        {
+            ReplaceJsonNode(rootJsonNode, pathSegments, replacementNode);
+        }
+
+        var updatedJsonText = rootJsonNode?.ToJsonString() ?? "null";
+        if (string.IsNullOrWhiteSpace(_currentFilePath))
+        {
+            throw new InvalidOperationException(ResourcesExtension.Instance.OpenFailed);
+        }
+
+        var rebuilt = JsonTreeBuilder.Build(updatedJsonText);
+        File.WriteAllText(_currentFilePath, rebuilt.FormattedText, System.Text.Encoding.UTF8);
+
+        JsonText = rebuilt.FormattedText;
+        JsonRootNodes = [rebuilt.RootNode];
+
+        if (File.Exists(_currentFilePath))
+        {
+            FileSizeText = FormatFileSize(new FileInfo(_currentFilePath).Length);
+        }
+
+        StatusText = Path.GetFileName(_currentFilePath);
+    }
+
+    private static JsonNode? CreateReplacementJsonNode(JsonValueKind valueKind, string editedText)
+    {
+        switch (valueKind)
+        {
+            case JsonValueKind.String:
+                return JsonValue.Create(editedText);
+            case JsonValueKind.Number:
+            {
+                var parsed = JsonNode.Parse(editedText);
+                if (parsed is JsonValue value)
+                {
+                    using var document = JsonDocument.Parse(value.ToJsonString());
+                    if (document.RootElement.ValueKind == JsonValueKind.Number)
+                    {
+                        return parsed;
+                    }
+                }
+
+                break;
+            }
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+            {
+                if (bool.TryParse(editedText, out var boolValue))
+                {
+                    return JsonValue.Create(boolValue);
+                }
+
+                break;
+            }
+            case JsonValueKind.Null:
+                if (string.Equals(editedText.Trim(), "null", StringComparison.Ordinal))
+                {
+                    return null;
+                }
+
+                break;
+        }
+
+        throw new InvalidOperationException(ResourcesExtension.Instance.JsonEditInvalidInput);
+    }
+
+    private static List<string> GetJsonPathSegments(JsonNodeViewModel node)
+    {
+        var segments = new List<string>();
+        var current = node;
+        while (current.Parent is not null)
+        {
+            segments.Add(current.Name);
+            current = current.Parent;
+        }
+
+        segments.Reverse();
+        return segments;
+    }
+
+    private static void ReplaceJsonNode(JsonNode rootJsonNode, IReadOnlyList<string> pathSegments, JsonNode? replacementNode)
+    {
+        JsonNode currentNode = rootJsonNode;
+        for (int i = 0; i < pathSegments.Count - 1; i++)
+        {
+            currentNode = pathSegments[i].StartsWith("[", StringComparison.Ordinal)
+                ? ((JsonArray)currentNode)[ParseArrayIndex(pathSegments[i])]!
+                : ((JsonObject)currentNode)[pathSegments[i]]!;
+        }
+
+        var lastSegment = pathSegments[^1];
+        if (lastSegment.StartsWith("[", StringComparison.Ordinal))
+        {
+            ((JsonArray)currentNode)[ParseArrayIndex(lastSegment)] = replacementNode;
+            return;
+        }
+
+        ((JsonObject)currentNode)[lastSegment] = replacementNode;
+    }
+
+    private static int ParseArrayIndex(string segment)
+    {
+        return int.Parse(segment.AsSpan(1, segment.Length - 2));
     }
 
     private static string FormatFileSize(long bytes)
